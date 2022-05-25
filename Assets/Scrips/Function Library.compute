@@ -1,0 +1,330 @@
+#pragma kernel WaveKernel
+#pragma kernel WaveToMultiWaveKernel
+#pragma kernel WaveToRippleKernel
+#pragma kernel WaveToScalingSphereKernel
+#pragma kernel WaveToTwistedSphereKernel
+#pragma kernel WaveToSpindleTorusKernel
+#pragma kernel WaveToRingTorusKernel
+#pragma kernel WaveToTwistedTorusKernel
+#pragma kernel WaveToExperimentalKernel
+
+#pragma kernel MultiWaveToWaveKernel
+#pragma kernel MultiWaveKernel
+#pragma kernel MultiWaveToRippleKernel
+#pragma kernel MultiWaveToScalingSphereKernel
+#pragma kernel MultiWaveToTwistedSphereKernel
+#pragma kernel MultiWaveToSpindleTorusKernel
+#pragma kernel MultiWaveToRingTorusKernel
+#pragma kernel MultiWaveToTwistedTorusKernel
+#pragma kernel MultiWaveToExperimentalKernel
+
+#pragma kernel RippleToWaveKernel
+#pragma kernel RippleToMultiWaveKernel
+#pragma kernel RippleKernel
+#pragma kernel RippleToScalingSphereKernel
+#pragma kernel RippleToTwistedSphereKernel
+#pragma kernel RippleToSpindleTorusKernel
+#pragma kernel RippleToRingTorusKernel
+#pragma kernel RippleToTwistedTorusKernel
+#pragma kernel RippleToExperimentalKernel
+
+#pragma kernel ScalingSphereToWaveKernel
+#pragma kernel ScalingSphereToMultiWaveKernel
+#pragma kernel ScalingSphereToRippleKernel
+#pragma kernel ScalingSphereKernel
+#pragma kernel ScalingSphereToTwistedSphereKernel
+#pragma kernel ScalingSphereToSpindleTorusKernel
+#pragma kernel ScalingSphereToRingTorusKernel
+#pragma kernel ScalingSphereToTwistedTorusKernel
+#pragma kernel ScalingSphereToExperimentalKernel
+
+#pragma kernel TwistedSphereToWaveKernel
+#pragma kernel TwistedSphereToMultiWaveKernel
+#pragma kernel TwistedSphereToRippleKernel
+#pragma kernel TwistedSphereToScalingSphereKernel
+#pragma kernel TwistedSphereKernel
+#pragma kernel TwistedSphereToSpindleTorusKernel
+#pragma kernel TwistedSphereToRingTorusKernel
+#pragma kernel TwistedSphereToTwistedTorusKernel
+#pragma kernel TwistedSphereToExperimentalKernel
+
+#pragma kernel SpindleTorusToWaveKernel
+#pragma kernel SpindleTorusToMultiWaveKernel
+#pragma kernel SpindleTorusToRippleKernel
+#pragma kernel SpindleTorusToScalingSphereKernel
+#pragma kernel SpindleTorusToTwistedSphereKernel
+#pragma kernel SpindleTorusKernel
+#pragma kernel SpindleTorusToRingTorusKernel
+#pragma kernel SpindleTorusToTwistedTorusKernel
+#pragma kernel SpindleTorusToExperimentalKernel
+
+#pragma kernel RingTorusToWaveKernel
+#pragma kernel RingTorusToMultiWaveKernel
+#pragma kernel RingTorusToRippleKernel
+#pragma kernel RingTorusToScalingSphereKernel
+#pragma kernel RingTorusToTwistedSphereKernel
+#pragma kernel RingTorusToSpindleTorusKernel
+#pragma kernel RingTorusKernel
+#pragma kernel RingTorusToTwistedTorusKernel
+#pragma kernel RingTorusToExperimentalKernel
+
+#pragma kernel TwistedTorusToWaveKernel
+#pragma kernel TwistedTorusToMultiWaveKernel
+#pragma kernel TwistedTorusToRippleKernel
+#pragma kernel TwistedTorusToScalingSphereKernel
+#pragma kernel TwistedTorusToTwistedSphereKernel
+#pragma kernel TwistedTorusToSpindleTorusKernel
+#pragma kernel TwistedTorusToRingTorusKernel
+#pragma kernel TwistedTorusKernel
+#pragma kernel TwistedTorusToExperimentalKernel
+
+#pragma kernel ExperimentalToWaveKernel
+#pragma kernel ExperimentalToMultiWaveKernel
+#pragma kernel ExperimentalToRippleKernel
+#pragma kernel ExperimentalToScalingSphereKernel
+#pragma kernel ExperimentalToTwistedSphereKernel
+#pragma kernel ExperimentalToSpindleTorusKernel
+#pragma kernel ExperimentalToRingTorusKernel
+#pragma kernel ExperimentalToTwistedTorusKernel
+#pragma kernel ExperimentalKernel
+
+
+RWStructuredBuffer<float3> _Positions;
+
+uint _Resolution;
+
+float _Step, _Time, _TransitionProgress;
+
+float2 GetUV(uint3 id) 
+{
+	return (id.xy + 0.5) * _Step - 1.0;
+}
+
+void SetPosition(uint3 id, float3 position)
+{
+	if (id.x < _Resolution && id.y < _Resolution) 
+	{
+		_Positions[id.x + id.y * _Resolution] = position;
+	}
+}
+
+
+#define PI 3.14159265358979323846
+
+float3 Wave(float u, float v, float t)
+{
+	float3 p;
+	p.x = u;
+	p.y = sin(PI * (u + v + t));
+	p.z = v;
+	return p;
+}
+
+float3 MultiWave(float u, float v, float t)
+{
+	float3 p;
+	p.x = u;
+	p.y = sin(PI * (u + 0.5 * t));
+	p.y += 0.5 * sin(2.0 * PI * (v + t));
+	p.y += sin(PI * (u + v + 0.25 * t));
+	p.y *= (1.0 / 2.5);
+	p.z = v;
+	return p;
+}
+
+float3 Ripple(float u, float v, float t)
+{
+    float d = sqrt(u * u + v * v);
+    float3 p;
+    p.x = u;
+    p.y = sin(PI * (4.0 * d - t));
+    p.y /= 1.0 + 10.0 * d;
+    p.z = v;
+    return p;
+}
+
+float3 ScalingSphere(float u, float v, float t)
+{
+    float r = 0.5 + 0.5 * sin(PI * t);
+    float s = r * cos(0.5 * PI * v);
+    float3 p;
+    p.x = s * sin(PI * u + t);
+    p.y = r * sin(0.5 * PI * v);
+    p.z = s * cos(PI * u + t);
+    return p;
+}
+
+float3 TwistedSphere(float u, float v, float t)
+{
+    float r = 0.9 + 0.1 * sin(PI * (12.0 * u + 8.0 * v + t));
+    float s = r * cos(0.5 * PI * v);
+    float3 p;
+    p.x = s * sin(PI * u);
+    p.y = r * sin(PI * 0.5f * v);
+    p.z = s * cos(PI * u);
+    return p;
+}
+
+float3 SpindleTorus(float u, float v, float t)
+{
+    float r = 1.0;
+    float s = 0.5 + r * cos(PI * v);
+    float3 p;
+    p.x = s * sin(PI * u + t);
+    p.y = r * sin(PI * v);
+    p.z = s * cos(PI * u + t);
+    return p;
+}
+
+float3 RingTorus(float u, float v, float t)
+{
+    float r1 = 0.75;
+    float r2 = 0.25;
+    float s = r1 + r2 * cos(PI * v);
+    float3 p;
+    p.x = s * sin(PI * u + t);
+    p.y = r2 * sin(PI * v);
+    p.z = s * cos(PI * u + t);
+    return p;
+}
+
+float3 TwistedTorus(float u, float v, float t)
+{
+    float r1 = 0.7 + 0.1 * sin(PI * (8.0 * u + 0.5 * t));
+    float r2 = 0.15 + 0.05 * sin(PI * (16.0 * u + 8.0 * v + 3.0 * t));
+    float s = r1 + r2 * cos(PI * v);
+    float3 p;
+    p.x = s * sin(PI * u);
+    p.y = r2 * sin(PI * v);
+    p.z = s * cos(PI * u);
+    return p;
+}
+
+float3 Experimental(float u, float v, float t)
+{
+    float r1 = 0.7 + 0.1 * sin(PI * (8.0 * u + 12.0 + t));
+    float r2 = 0.15 + 0.05 * sin(PI * (8.0 * u + 8.0 * v + 2.0 * t));
+    float s = r1 + r2 * tan(4.0 * PI * v);
+    float3 p;
+    p.x = s * sin(PI * u);
+    p.y = r2 * sin(PI * 4.0 * v);
+    p.z = s * cos(PI * u);
+    return p;
+}
+
+#define KERNEL_FUNCTION(function) \
+    [numthreads(8, 8, 1)] \
+    void function##Kernel(uint3 id: SV_DispatchThreadID) { \
+	    float2 uv = GetUV(id); \
+	    SetPosition(id, function(uv.x, uv.y, _Time)); \
+    }
+
+#define KERNEL_MORPH_FUNCTION(functionA, functionB) \
+    [numthreads(8, 8, 1)] \
+    void functionA##To##functionB##Kernel (uint3 id: SV_DispatchThreadID) { \
+	    float2 uv = GetUV(id); \
+        float3 position = lerp( \
+            functionA(uv.x, uv.y, _Time), functionB(uv.x, uv.y, _Time), \
+            _TransitionProgress \
+        ); \
+	    SetPosition(id, position); \
+    }
+
+KERNEL_FUNCTION(Wave)
+KERNEL_FUNCTION(MultiWave)
+KERNEL_FUNCTION(Ripple)
+KERNEL_FUNCTION(ScalingSphere)
+KERNEL_FUNCTION(TwistedSphere)
+KERNEL_FUNCTION(SpindleTorus)
+KERNEL_FUNCTION(RingTorus)
+KERNEL_FUNCTION(TwistedTorus)
+KERNEL_FUNCTION(Experimental)
+
+KERNEL_MORPH_FUNCTION(Wave, MultiWave);
+KERNEL_MORPH_FUNCTION(Wave, Ripple);
+KERNEL_MORPH_FUNCTION(Wave, ScalingSphere);
+KERNEL_MORPH_FUNCTION(Wave, TwistedSphere);
+KERNEL_MORPH_FUNCTION(Wave, SpindleTorus);
+KERNEL_MORPH_FUNCTION(Wave, RingTorus);
+KERNEL_MORPH_FUNCTION(Wave, TwistedTorus);
+KERNEL_MORPH_FUNCTION(Wave, Experimental);
+
+
+KERNEL_MORPH_FUNCTION(MultiWave, Wave);
+KERNEL_MORPH_FUNCTION(MultiWave, Ripple);
+KERNEL_MORPH_FUNCTION(MultiWave, ScalingSphere);
+KERNEL_MORPH_FUNCTION(MultiWave, TwistedSphere);
+KERNEL_MORPH_FUNCTION(MultiWave, SpindleTorus);
+KERNEL_MORPH_FUNCTION(MultiWave, RingTorus);
+KERNEL_MORPH_FUNCTION(MultiWave, TwistedTorus);
+KERNEL_MORPH_FUNCTION(MultiWave, Experimental);
+
+KERNEL_MORPH_FUNCTION(Ripple, Wave);
+KERNEL_MORPH_FUNCTION(Ripple, MultiWave);
+KERNEL_MORPH_FUNCTION(Ripple, ScalingSphere);
+KERNEL_MORPH_FUNCTION(Ripple, TwistedSphere);
+KERNEL_MORPH_FUNCTION(Ripple, SpindleTorus);
+KERNEL_MORPH_FUNCTION(Ripple, RingTorus);
+KERNEL_MORPH_FUNCTION(Ripple, TwistedTorus);
+KERNEL_MORPH_FUNCTION(Ripple, Experimental);
+ 
+
+KERNEL_MORPH_FUNCTION(ScalingSphere, Wave);
+KERNEL_MORPH_FUNCTION(ScalingSphere, MultiWave);
+KERNEL_MORPH_FUNCTION(ScalingSphere, Ripple);
+KERNEL_MORPH_FUNCTION(ScalingSphere, TwistedSphere);
+KERNEL_MORPH_FUNCTION(ScalingSphere, SpindleTorus);
+KERNEL_MORPH_FUNCTION(ScalingSphere, RingTorus);
+KERNEL_MORPH_FUNCTION(ScalingSphere, TwistedTorus);
+KERNEL_MORPH_FUNCTION(ScalingSphere, Experimental);
+
+KERNEL_MORPH_FUNCTION(TwistedSphere, Wave);
+KERNEL_MORPH_FUNCTION(TwistedSphere, MultiWave);
+KERNEL_MORPH_FUNCTION(TwistedSphere, Ripple);
+KERNEL_MORPH_FUNCTION(TwistedSphere, ScalingSphere);
+KERNEL_MORPH_FUNCTION(TwistedSphere, SpindleTorus);
+KERNEL_MORPH_FUNCTION(TwistedSphere, RingTorus);
+KERNEL_MORPH_FUNCTION(TwistedSphere, TwistedTorus);
+KERNEL_MORPH_FUNCTION(TwistedSphere, Experimental);
+
+
+KERNEL_MORPH_FUNCTION(SpindleTorus, Wave);
+KERNEL_MORPH_FUNCTION(SpindleTorus, MultiWave);
+KERNEL_MORPH_FUNCTION(SpindleTorus, Ripple);
+KERNEL_MORPH_FUNCTION(SpindleTorus, ScalingSphere);
+KERNEL_MORPH_FUNCTION(SpindleTorus, TwistedSphere);
+KERNEL_MORPH_FUNCTION(SpindleTorus, RingTorus);
+KERNEL_MORPH_FUNCTION(SpindleTorus, TwistedTorus);
+KERNEL_MORPH_FUNCTION(SpindleTorus, Experimental);
+
+
+KERNEL_MORPH_FUNCTION(RingTorus, Wave);
+KERNEL_MORPH_FUNCTION(RingTorus, MultiWave);
+KERNEL_MORPH_FUNCTION(RingTorus, Ripple);
+KERNEL_MORPH_FUNCTION(RingTorus, ScalingSphere);
+KERNEL_MORPH_FUNCTION(RingTorus, TwistedSphere);
+KERNEL_MORPH_FUNCTION(RingTorus, SpindleTorus);
+KERNEL_MORPH_FUNCTION(RingTorus, TwistedTorus);
+KERNEL_MORPH_FUNCTION(RingTorus, Experimental);
+
+
+KERNEL_MORPH_FUNCTION(TwistedTorus, Wave);
+KERNEL_MORPH_FUNCTION(TwistedTorus, MultiWave);
+KERNEL_MORPH_FUNCTION(TwistedTorus, Ripple);
+KERNEL_MORPH_FUNCTION(TwistedTorus, ScalingSphere);
+KERNEL_MORPH_FUNCTION(TwistedTorus, TwistedSphere);
+KERNEL_MORPH_FUNCTION(TwistedTorus, SpindleTorus);
+KERNEL_MORPH_FUNCTION(TwistedTorus, RingTorus);
+KERNEL_MORPH_FUNCTION(TwistedTorus, Experimental);
+
+
+ KERNEL_MORPH_FUNCTION(Experimental, Wave);
+ KERNEL_MORPH_FUNCTION(Experimental, MultiWave);
+ KERNEL_MORPH_FUNCTION(Experimental, Ripple);
+ KERNEL_MORPH_FUNCTION(Experimental, ScalingSphere);
+ KERNEL_MORPH_FUNCTION(Experimental, TwistedSphere);
+ KERNEL_MORPH_FUNCTION(Experimental, SpindleTorus);
+ KERNEL_MORPH_FUNCTION(Experimental, RingTorus);
+ KERNEL_MORPH_FUNCTION(Experimental, TwistedTorus);
+ 
+ 
