@@ -3,5 +3,5 @@ Morphs shapes ranging from waves to toruses
 
 
 [SINE_WAVE]
-https://user-images.githubusercontent.com/91715993/170541384-425618f0-a8d1-4542-9288-7bbd5296d308.mp4
 
+![Sine](https://user-images.githubusercontent.com/91715993/170544272-762fbb1b-ad53-45b2-b756-87402cd3cfb7.gif)
